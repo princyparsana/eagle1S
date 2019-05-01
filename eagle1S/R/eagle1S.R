@@ -85,10 +85,13 @@ eagle1S = function(ase,
      }
 
      gene_ase = ase %>% filter( POS == exonic_snp_pos )
-     if (nrow(gene_ase) < min_samples) return(NULL)
+     if (nrow(gene_ase) < min_samples) {
+		cat(exonic_snp_pos,"sample size\n")
+		return(NULL)
+		}
 
      allelic_count_total=sum(gene_ase$a+gene_ase$r)
-     cat("Allelic total count ", allelic_count_total, "\n")
+     cat("Allelic total count ", allelic_count_total, exonic_snp_pos, "\n")
      if (allelic_count_total < min_reads) return(NULL)
 
      cis_snps=phased %>%
@@ -103,7 +106,7 @@ eagle1S = function(ase,
        reg_geno = (phased %>% filter( POS == snp_pos ))[,11:ncol(phased)] %>% as.matrix()
 
        if (nrow(reg_geno) != 1) {
-         print("Skipping >biallelic site")
+         print("Skipping >biallelic site", snp_pos)
          return(NULL)
        }
 
@@ -119,9 +122,15 @@ eagle1S = function(ase,
                               ifelse(geno == reg_geno,1,-1), # is it in phase with the exonicSNP?
                               0) )
 
-       if (nrow(ase_temp) < min_samples) return(NULL)
+       if (nrow(ase_temp) < min_samples) {
+		cat("min number of samples ase\n")
+		return(NULL)
+	}
        num_het_snps=sum(ase_temp$het_x != 0)
-       if (num_het_snps < min_samples) return(NULL) # no heterozygous regulatory SNPs
+       if (num_het_snps < min_samples){
+		cat("min number of heterozygous regulatory snps", snp_pos, "\n")
+		return(NULL) # no heterozygous regulatory SNPs
+	}
 
        ase_temp %<>% left_join(meta, by="individual")
 
